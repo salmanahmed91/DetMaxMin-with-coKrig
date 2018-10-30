@@ -1,0 +1,39 @@
+% clc;
+% clear all;
+% close all;
+
+%% -------------- evaluate the index for MmLHD-------------------
+
+% numSmpl = 9;
+% numTest   = 3;
+% numSmpl3D = 2;
+% numSmpl3DTest = 2;
+% 
+% 
+% xStep = 0.09;
+% X1E = [0.13 0.2 0.7 0.95]';
+% X1C = [0:xStep:1]';
+%%for 3D sample set
+X = X1E;
+lb_X = [0];
+ub_X = [1];
+
+X = (X - lb_X)./(ub_X-lb_X);
+
+[index.ind3DTest, index.ind3D] = smplSel(X,numSmpl3DTest);
+
+
+%%for the 2D sample set
+
+X = X1C;
+lb_X = [0];
+ub_X = [1];
+
+X = (X - lb_X)./(ub_X-lb_X);
+
+
+[index.ind2DTest, index.ind2D] = smplSel(X,numTest);
+%%
+save index.mat index
+
+
