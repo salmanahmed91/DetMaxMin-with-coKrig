@@ -1,7 +1,7 @@
 %clear all;
 close all;
 clc;
-
+%%adding comments
 colors10Class = [lines(5)];
 newDefaultColors = colors10Class;
 set(gca, 'ColorOrder',newDefaultColors,'NextPlot','replacechildren')
