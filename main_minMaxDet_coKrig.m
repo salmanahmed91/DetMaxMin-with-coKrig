@@ -25,9 +25,9 @@ Nx   = length(posX);
 %x1en = [1 [sort(ceil(lhsdesign(33,1).*33))]'];
 %x1en = [1  3     8    11    17    19    24    26    31];
 x1en = [1 1:32];
-x1en = [1 8 17 26];
+x1en = [1 8 17 30];
 
-x1cn = [1 1:2:32];
+x1cn = [1 1:1:32];
 X1E = posX(x1en,1);
 X1C = posX(x1cn,1);
 
@@ -63,7 +63,7 @@ X1Cn = normalizeX(X1C,lbX,ubX);
 RcorrType = 5;
 
 ntheta = 1;
-nP = 1;
+nP = 0;
 nT = 0;
 k = size(X1Cn,2);
 rsb = 1; % the index for subplot. rsb :rows, csb:colums
@@ -74,12 +74,12 @@ numXnew = 50; % number of random points for plotting
 intCon = [];
 
 %Limits for hyperparamsfor krig mdl
-lbTheta_P = [1e0.*ones(1,ntheta)  1.991.*ones(1,nP)   ] %         ];     % Lower Bound of Variables
-ubTheta_P = [  5e1*ones(1,ntheta)   1.999.*ones(1,nP) ] %        ];    % Upper bounds
+lbTheta_P = [1.25e0.*ones(1,ntheta) ]% 1.991.*ones(1,nP)   ] %         ];     % Lower Bound of Variables
+ubTheta_P = [  5e2*ones(1,ntheta)]%   1.999.*ones(1,nP) ] %        ];    % Upper bounds
 
 %Limits for hyperparams for coKrig mdl
-lbTheta_P_rho = [1e0.*ones(1,ntheta) 1.991.*ones(1,nP) -10] %         ];     % Lower Bound of Variables
-ubTheta_P_rho = [5e1*ones(1,ntheta)   1.999.*ones(1,nP)  10] %        ];    % Upper bounds
+lbTheta_P_rho = [1e0.*ones(1,ntheta) -10]% 1.991.*ones(1,nP) -10] %         ];     % Lower Bound of Variables
+ubTheta_P_rho = [15e1*ones(1,ntheta) +10]%   1.999.*ones(1,nP)  10] %        ];    % Upper bounds
 
 
 numTest   = 1;
@@ -87,7 +87,7 @@ numSmpl = size(X1Cn,1) - numTest;
 numSmpl3DTest = 1;
 numSmpl3D =size(X1En,1) - numSmpl3DTest;
 
-extractMmLHD;
+run extractMmLHD;
 
 %% ---------------------- same for any kind of data----------------
 dummy = 0;
@@ -144,10 +144,11 @@ end
 
 if (size(x1c,2)==1)
     figure(987),hold all;
-    plot(x1c,YC_C,'-o');
-    plot(x1e,YE_E,'-x');
-    plot(x1e,YC_E,'-^');grid on,xlabel('x'),ylabel('Response'),
-    legend('show'),lgnd = legend('sample YC_C','sample YE_E','sample YC_E');
+    plot(x1c,YC_C,'-o','linewidth',2);
+    plot(x1e,YE_E,'-x','linewidth',2);
+    plot(x1e,YC_E,'-^','linewidth',2);
+    grid on, box on,xlabel('Position along x-axis (x) [$\tau_P$]'),ylabel('Detent [N]'),
+    legend('show'),lgnd = legend('2D model (LF)','3D model (HF)','sample YC_E');
 end
     
 gpr_mdl_2D = initKrig(gpr_mdl_2D,x1c,x1cTest,YC_C,YC_CTest,lbX,ubX,RcorrType);
@@ -194,7 +195,7 @@ A = [];
 b = [];
 Aeq = [];
 beq = [];
-nPop = 5000;
+nPop = 10000;
 MaxIt = 75;
 
 lb = [lbTheta_P_rho];      % Lower Bound of Variables

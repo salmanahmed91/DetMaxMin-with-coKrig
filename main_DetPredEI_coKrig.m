@@ -1,8 +1,8 @@
 %clear all;
 close all;
 clc;
-%%adding comments
-colors10Class = [lines(5)];
+
+colors10Class = [lines(10)];
 newDefaultColors = colors10Class;
 set(gca, 'ColorOrder',newDefaultColors,'NextPlot','replacechildren')
 
@@ -22,23 +22,27 @@ ntheta = size(gpr_mdl_SUR.X,2);
 nP     = size(gpr_mdl_SUR.X,2);
 
 %Limits for hyperparams for coKrig mdl
-lbTheta_P_rho = [1e0.*ones(1,ntheta) 1.991.*ones(1,nP) -10] ;%         ];     % Lower Bound of Variables
-ubTheta_P_rho = [15e1*ones(1,ntheta)   1.999.*ones(1,nP)  10] ;%        ];    % Upper bounds
+lbTheta_P_rho = [1e-1.*ones(1,ntheta) -10]% 1.991.*ones(1,nP) -10] %         ];     % Lower Bound of Variables
+ubTheta_P_rho = [15e1*ones(1,ntheta) +10]%   1.999.*ones(1,nP)  10] %        ];    % Upper bounds
 
 minMaxFlag = 0;
 
-iter = [3];
-xNew = [gpr_mdl_SUR.lbX:0.001:gpr_mdl_SUR.ubX]';
-ymaxTrue = [max(gpr_mdl_YE.Eval(xNew))];
-yminTrue = [min(gpr_mdl_YE.Eval(xNew))];
-ymaxIter = [max(gpr_mdl_SUR.Eval(xNew))];
-yminIter = [min(gpr_mdl_SUR.Eval(xNew))];
+x = [0:0.01:1]';
+yminTRUE = min(gpr_mdl_YE.Eval(x));
+ymaxTRUE = max(gpr_mdl_YE.Eval(x));
+yminIter = min(gpr_mdl_SUR.Eval(x));
+ymaxIter = max(gpr_mdl_SUR.Eval(x));
+nSamp    = [3];
 
-j = [ 1 2 3 4 9 10 11 12];
+j = [ 1 2 3 4 9 10 11 12];% for subplot index
+
+
+run pltDetMinMax.m
+run templateForFigMaking.m
 
 
 
-for i = 1:10
+for i = 2:10
     
 MaxIt = 20;
 nPop = 50;
@@ -47,12 +51,14 @@ ymin = min(gpr_mdl_SUR.Y);
 ymax = max(gpr_mdl_SUR.Y);
 [maxEI_max, xMax] =  maxEI(ymax,gpr_mdl_SUR,'max');
 [maxEI_min, xMin] =  maxEI(ymin,gpr_mdl_SUR,'min');
+
+
 %[maxEI_min, xMin] =  maxProdEI(ymin,ymax,gpr_mdl_coYE);
-% if maxEI_max(end) < maxEI_min(end)
-%     minMaxFlag = 1;
-% else
-%     minMaxFlag = 0;
-% end
+if maxEI_max(end) < maxEI_min(end)
+    minMaxFlag = 1;
+else
+    minMaxFlag = 0;
+end
 %% evaluating the high fidelity model
 %this section shall be replaced by results from 3D FEM
 ye_xMax = gpr_mdl_YE.Eval(xMax); 
@@ -62,12 +68,12 @@ ye_xMin = gpr_mdl_YE.Eval(xMin);
 if (minMaxFlag == 0)
         gpr_mdl_SUR.X   =  [gpr_mdl_SUR.X ; xMin    ];
         gpr_mdl_SUR.Y   =  [gpr_mdl_SUR.Y ; ye_xMin ];
-        minMaxFlag = 1;
+        %minMaxFlag = 1;
 else
     if minMaxFlag == 1
         gpr_mdl_SUR.X   =  [gpr_mdl_SUR.X ; xMax   ];
         gpr_mdl_SUR.Y   =  [gpr_mdl_SUR.Y ; ye_xMax];
-        minMaxFlag = 0;
+        %minMaxFlag = 0;
     end
 end
 
@@ -80,8 +86,8 @@ A = [];
 b = [];
 Aeq = [];
 beq = [];
-nPop = 2000;
-MaxIt = 50;
+nPop = 1000;
+MaxIt =40;
 intCon = [];
 
 lb = [lbTheta_P_rho];      % Lower Bound of Variables
@@ -94,40 +100,27 @@ YC_E = gpr_mdl_SUR.gpr_mdl_2D.Eval(gpr_mdl_SUR.X);
                                          nvars,lb,ub,MaxIt,nPop,intCon);
 
 %% ------------------ Prediction of coKriging model-------------------
-% 
-% gpr_mdl_SUR.crossValidate;
-% gpr_mdl_SUR.paramEffects(rsb,csb,effectType,predictorStr,numXnew);
 
+%gpr_mdl_SUR.crossValidate;
+%gpr_mdl_SUR.paramEffects(rsb,csb,effectType,predictorStr,numXnew);
 
-ymin = min(gpr_mdl_SUR.Y);
-ymax = max(gpr_mdl_SUR.Y);
-figure(100);hold all;
-[Fpred,RMSE]= gpr_mdl_SUR.Eval(xNew);
-subplot(4,4,j(i)),plot(xNew,gpr_mdl_YE.Eval(xNew),'--','linewidth',1);hold all;
-subplot(4,4,j(i)),plot(gpr_mdl_SUR.X,gpr_mdl_SUR.Y,'^','markersize',8);
-subplot(4,4,j(i)),plot(xNew,[Fpred],'linewidth',2);
-subplot(4,4,j(i)),plot(xNew,[Fpred+2.*RMSE Fpred-2*RMSE],'--','linewidth',1);
-xlabel('x'),ylabel('Response'),hold all,grid on
-% legend('show'),hldng = legend('EI max','EI min');
+nSamp = [nSamp ;size(gpr_mdl_SUR.X,1)];
 
-EI_xMax  = EI(ymax,xNew,gpr_mdl_SUR,'max');
-EI_xMin  = EI(ymin,xNew,gpr_mdl_SUR,'min');
-subplot(4,4,j(i)+4),plot(xNew,[EI_xMax EI_xMin],'linewidth',2);
-xlabel('x'),ylabel('EI(x)'),hold all,grid on;
-% legend('show'),hldng = legend('EI max','EI min');
+run pltDetMinMax.m
+run templateForFigMaking.m
 
-figure(232)
-iter = [iter ; size(gpr_mdl_SUR.X,1)];
-ymaxTrue = [ymaxTrue ; max(gpr_mdl_YE.Eval(xNew))];
-yminTrue = abs([yminTrue ; min(gpr_mdl_YE.Eval(xNew))]);
-ymaxIter = [ymaxIter ; max(gpr_mdl_SUR.Eval(xNew))];
-yminIter = abs([yminIter ;min(gpr_mdl_SUR.Eval(xNew))]);
-subplot(2,1,1),plot(iter,[ymaxTrue ymaxIter],'--o','linewidth',2),grid on,
-ylabel('Response')
-xlabel('Number of HF samples')
-subplot(2,1,2),plot(iter,[yminTrue yminIter],'--o','linewidth',2),grid on,
-ylabel('-Response')
-xlabel('Number of HF samples')
+figure(232),
+x = [0:0.01:1]';
+SUR_pred = gpr_mdl_SUR.Eval(x);
+yminIter = [yminIter; min(SUR_pred)];
+ymaxIter = [ymaxIter; max(SUR_pred)];
+subplot(211),plot(nSamp, yminIter,'-o','linewidth',2),grid on;hold all;
+subplot(211),plot(nSamp, yminTRUE.*ones(size(yminIter,1),1),'--','linewidth',2),grid on;
+xlabel('No. of HF samples'),ylabel('Response');hold off;
+legend('show'),lgnd = legend('Iter best','True');
+subplot(212),plot(nSamp, ymaxIter,'-o','linewidth',2),grid on;hold on;
+subplot(212),plot(nSamp, ymaxTRUE.*ones(size(ymaxIter,1),1),'--','linewidth',2),grid on;
+xlabel('No. of HF samples'),ylabel('Response');hold off;
 
 
 plottingGPs
