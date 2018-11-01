@@ -1,7 +1,9 @@
 
 
 
+
 ymin = min(gpr_mdl_SUR.Y);
+ymax = max(gpr_mdl_SUR.Y);
 f1 = figure(450);
 xNew = [gpr_mdl_SUR.lbX:0.01:gpr_mdl_SUR.ubX]';
 [Fpred,RMSE] = gpr_mdl_SUR.Eval(xNew);
